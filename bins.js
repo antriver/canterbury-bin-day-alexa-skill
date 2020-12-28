@@ -77,41 +77,64 @@ const formatCollectionText = (collectionEl) => {
     let dateString = collectionEl.querySelector('.large').innerHTML.trim();
     // console.log('dateString', dateString);
 
-    moment.tz.guess();
     // console.log('now', (new Date()).toString());
     // console.log('now london', moment.tz('Europe/London').toString());
 
-    let date = moment.tz(dateString, 'dddd D MMMM', 'Europe/London');
-    // console.log('date', date.toString());
-
-    let now = moment.tz('Europe/London');
-    const isToday = date.format('Y-MM-DD') === now.format('Y-MM-DD');
-    // console.log('isToday', isToday);
-
-    let tomorrow = moment.tz('Europe/London').add(1, 'd');
-    const isTomorrow = date.format('Y-MM-DD') === tomorrow.format('Y-MM-DD');
-    // console.log('isTomorrow', isTomorrow);
+    let date = parseDate(dateString);
+    // console.log('date', date);
 
     let lines = collectionEl.innerHTML.split('<br />');
     let lastLine = lines[lines.length - 1];
     lastLine = lastLine.replace('Includes', 'This includes');
     // console.log('lastLine', lastLine);
 
-    let formattedDate = date.format('dddd MMMM Do');
     let collectedOn;
-    if (isToday) {
-        collectedOn = `today (${formattedDate})`;
-    } else if (isTomorrow) {
-        collectedOn = `tomorrow (${formattedDate})`;
+    if (date.isToday) {
+        collectedOn = `today (${date.formattedDate})`;
+    } else if (date.isTomorrow) {
+        collectedOn = `tomorrow (${date.formattedDate})`;
     } else {
-        collectedOn = `on ${formattedDate}`;
+        collectedOn = `on ${date.formattedDate}`;
     }
 
     // Build the text.
     return `Your next collection is ${speakType}, ${collectedOn}. ${lastLine}`;
 };
 
+const parseDate = (dateString) => {
+    moment.tz.guess();
+
+    // Fudge for the first collection of the year.
+    // If today is Monday December 28th 2020
+    // If you pass "Saturday 02 January" to moment there is no year in the string and it assumes it's the
+    // current year. It then creates an invalid date because there is no Saturday 02 January 2020.
+    // To workaround this, if the string contains "January" and the current month is not 0 assume it's the next year,
+    // and append the year to the date string.
+    const isNextYear = dateString.indexOf('January') !== -1 && (new Date()).getMonth() !== 0;
+    const year = isNextYear ? (new Date()).getFullYear() + 1 : (new Date()).getFullYear();
+
+    dateString += ' ' + year;
+    console.log('dateString', dateString);
+
+    let date = moment.tz(dateString, 'dddd D MMMM YYYY', 'Europe/London');
+
+    let now = moment.tz('Europe/London');
+    const isToday = date.format('Y-MM-DD') === now.format('Y-MM-DD');
+
+    let tomorrow = moment.tz('Europe/London').add(1, 'd');
+    const isTomorrow = date.format('Y-MM-DD') === tomorrow.format('Y-MM-DD');
+
+    let formattedDate = date.format('dddd MMMM Do');
+
+    return {
+        formattedDate,
+        isToday,
+        isTomorrow
+    }
+};
+
 module.exports = {
     getRound,
-    getNextCollection
+    getNextCollection,
+    parseDate
 };
