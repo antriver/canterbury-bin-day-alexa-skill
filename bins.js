@@ -32,6 +32,7 @@ const getRound = (postcode, addressLine1) => {
                     // console.log(address, round);
                     if (address.toLowerCase().indexOf(lowerAddress) !== -1) {
                         resolve(round);
+                        return;
                     }
                 }
             }
