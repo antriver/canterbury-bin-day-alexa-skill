@@ -114,7 +114,6 @@ const parseDate = (dateString) => {
     const year = isNextYear ? (new Date()).getFullYear() + 1 : (new Date()).getFullYear();
 
     dateString += ' ' + year;
-    console.log('dateString', dateString);
 
     let date = moment.tz(dateString, 'dddd D MMMM YYYY', 'Europe/London');
 
