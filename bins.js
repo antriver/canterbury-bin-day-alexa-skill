@@ -68,25 +68,15 @@ const getNextCollection = (round) => {
  * @param {HTMLElement} collectionEl
  */
 const formatCollectionText = (collectionEl) => {
-    // console.log('collectionEl', collectionEl.innerHTML);
-
     let type = collectionEl.querySelector('strong').innerHTML.trim();
     let speakType = type === 'general' ? 'general waste' : type;
-    // console.log('type', type);
 
     let dateString = collectionEl.querySelector('.large').innerHTML.trim();
-    // console.log('dateString', dateString);
-
-    // console.log('now', (new Date()).toString());
-    // console.log('now london', moment.tz('Europe/London').toString());
-
     let date = parseDate(dateString);
-    // console.log('date', date);
 
     let lines = collectionEl.innerHTML.split('<br />');
     let lastLine = lines[lines.length - 1];
     lastLine = lastLine.replace('Includes', 'This includes');
-    // console.log('lastLine', lastLine);
 
     let collectedOn;
     if (date.isToday) {
@@ -113,7 +103,9 @@ const parseDate = (dateString) => {
     const isNextYear = dateString.indexOf('January') !== -1 && (new Date()).getMonth() !== 0;
     const year = isNextYear ? (new Date()).getFullYear() + 1 : (new Date()).getFullYear();
 
+    dateString = dateString.replace('*', '');
     dateString += ' ' + year;
+    //console.log('dateString', dateString);
 
     let date = moment.tz(dateString, 'dddd D MMMM YYYY', 'Europe/London');
 

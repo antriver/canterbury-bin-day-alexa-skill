@@ -9,6 +9,7 @@ describe('getRound', () => {
     });
 });
 
+// These tests only make sense at the time they were written, because I'm lazily trying to check a bugfix.
 describe('parseDate', () => {
     it('Should parse date in current year', () => {
         let dateString = 'Monday 28 December';
@@ -22,8 +23,20 @@ describe('parseDate', () => {
         )
     });
 
-    it('Should return object', () => {
+    it('Should work with Jan next year', () => {
         let dateString = 'Saturday 02 January';
+        let result = parseDate(dateString);
+        expect(result).toEqual(
+            {
+                formattedDate: 'Saturday January 2nd',
+                isToday: false,
+                isTomorrow: false
+            }
+        )
+    });
+
+    it('Should work with Jan next year with asterisk', () => {
+        let dateString = 'Saturday 02 January*';
         let result = parseDate(dateString);
         expect(result).toEqual(
             {
