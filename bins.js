@@ -48,8 +48,8 @@ const getRound = (postcode, addressLine1) => {
  * @param {string} round
  * @returns {Promise<string>}
  */
-const getNextCollection = (round) => {
-    return fetchCollectionInfo(round)
+const getNextCollectionString = (round) => {
+    return fetchNextCollectionInfo(round)
         .then((answer) => {
             return formatCollectionText(answer);
         })
@@ -61,7 +61,7 @@ const getNextCollection = (round) => {
  * @param {string} round
  * @returns {Promise<HTMLElement>}
  */
-const fetchCollectionInfo = (round) => {
+const fetchNextCollectionInfo = (round) => {
     return new Promise((resolve, reject) => {
         request(`https://www.canterbury.gov.uk/bincalendar?round=${round}`, (err, res, body) => {
             if (err || !body) {
@@ -151,6 +151,6 @@ const parseDate = (dateString) => {
 
 module.exports = {
     getRound,
-    getNextCollection,
+    getNextCollectionString,
     parseDate
 };

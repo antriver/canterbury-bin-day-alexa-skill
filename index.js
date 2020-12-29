@@ -2,7 +2,7 @@
 // Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
 // session persistence, api calls, and more.
 const Alexa = require('ask-sdk-core');
-const { getRound, getNextCollection } = require('./bins');
+const { getRound, getNextCollectionString } = require('./bins');
 
 const RubbishIntentHandler = {
     canHandle(handlerInput) {
@@ -38,7 +38,7 @@ const RubbishIntentHandler = {
                     const round = await getRound(address.postalCode, address.addressLine1);
 
                     // Find the next collection from CCC.
-                    const nextCollection = await getNextCollection(round);
+                    const nextCollection = await getNextCollectionString(round);
 
                     return responseBuilder
                         .speak(nextCollection)
