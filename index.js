@@ -27,8 +27,6 @@ const RubbishIntentHandler = {
             const deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
             const address = await deviceAddressServiceClient.getFullAddress(deviceId);
 
-            // console.log('Address successfully retrieved, now responding to user.', address);
-
             let response;
             if (address.addressLine1 === null && address.stateOrRegion === null) {
                 response = responseBuilder

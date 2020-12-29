@@ -2,6 +2,11 @@ const request = require('request');
 const moment = require('moment-timezone');
 const { parse } = require('node-html-parser');
 
+/**
+ * @param {string} postcode
+ * @param {string} addressLine1
+ * @returns {Promise<string>}
+ */
 const getRound = (postcode, addressLine1) => {
     return new Promise((resolve, reject) => {
         let lowerAddress = addressLine1.toLowerCase();
@@ -11,8 +16,6 @@ const getRound = (postcode, addressLine1) => {
                 reject(new Error('I couldn\'t load your collection round from the council website.'));
                 return;
             }
-
-            // console.log('find_your_bin_collection_dates response', body);
 
             let doc = parse(body);
             let chooser = doc.querySelector('#chooseaddress');
@@ -29,7 +32,6 @@ const getRound = (postcode, addressLine1) => {
                     let value = o.attributes.value;
                     let round = value.replace('https://www.canterbury.gov.uk/bincalendar?round=', '');
                     let address = o.innerHTML.trim();
-                    // console.log(address, round);
                     if (address.toLowerCase().indexOf(lowerAddress) !== -1) {
                         resolve(round);
                         return;
@@ -42,7 +44,24 @@ const getRound = (postcode, addressLine1) => {
     });
 };
 
+/**
+ * @param {string} round
+ * @returns {Promise<string>}
+ */
 const getNextCollection = (round) => {
+    return fetchCollectionInfo(round)
+        .then((answer) => {
+            return formatCollectionText(answer);
+        })
+};
+
+/**
+ * Loads the page for the collection round and returns the HTMLElement representing the next collection.
+ *
+ * @param {string} round
+ * @returns {Promise<HTMLElement>}
+ */
+const fetchCollectionInfo = (round) => {
     return new Promise((resolve, reject) => {
         request(`https://www.canterbury.gov.uk/bincalendar?round=${round}`, (err, res, body) => {
             if (err || !body) {
@@ -51,15 +70,10 @@ const getNextCollection = (round) => {
                 return;
             }
 
-            // console.log('bincalendar response', body);
-
             let doc = parse(body);
-
             let answer = doc.querySelector('.widget--your-collection-day').querySelectorAll('p')[0];
 
-            // console.log('answer', answer);
-
-            resolve(formatCollectionText(answer));
+            resolve(answer);
         });
     });
 };
@@ -71,12 +85,15 @@ const formatCollectionText = (collectionEl) => {
     let type = collectionEl.querySelector('strong').innerHTML.trim();
     let speakType = type === 'general' ? 'general waste' : type;
 
-    let dateString = collectionEl.querySelector('.large').innerHTML.trim();
+    let dateString = collectionEl.querySelector('.large').innerText.trim();
     let date = parseDate(dateString);
+    console.log('date', date);
 
     let lines = collectionEl.innerHTML.split('<br />');
     let lastLine = lines[lines.length - 1];
-    lastLine = lastLine.replace('Includes', 'This includes');
+
+    const includesMatch = lastLine.match(/Includes.*\./);
+    const binTypes = includesMatch[0].replace('Includes', 'This includes');
 
     let collectedOn;
     if (date.isToday) {
@@ -88,11 +105,20 @@ const formatCollectionText = (collectionEl) => {
     }
 
     // Build the text.
-    return `Your next collection is ${speakType}, ${collectedOn}. ${lastLine}`;
+    const str = `Your next collection is ${speakType}, ${collectedOn}. ${binTypes}`;
+    console.log('str', str);
+
+    return str;
 };
 
+/**
+ * @param {string} dateString
+ * @returns {{formattedDate: string, dateString: string, isToday: boolean, isTomorrow: boolean}}
+ */
 const parseDate = (dateString) => {
     moment.tz.guess();
+
+    dateString = dateString.match(/^\w+ \d{2} \w+/)[0]
 
     // Fudge for the first collection of the year.
     // If today is Monday December 28th 2020
@@ -103,9 +129,7 @@ const parseDate = (dateString) => {
     const isNextYear = dateString.indexOf('January') !== -1 && (new Date()).getMonth() !== 0;
     const year = isNextYear ? (new Date()).getFullYear() + 1 : (new Date()).getFullYear();
 
-    dateString = dateString.replace('*', '');
     dateString += ' ' + year;
-    //console.log('dateString', dateString);
 
     let date = moment.tz(dateString, 'dddd D MMMM YYYY', 'Europe/London');
 
@@ -118,6 +142,7 @@ const parseDate = (dateString) => {
     let formattedDate = date.format('dddd MMMM Do');
 
     return {
+        dateString,
         formattedDate,
         isToday,
         isTomorrow

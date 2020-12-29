@@ -1,4 +1,6 @@
-const { getRound, parseDate } = require('../bins');
+const { getRound, parseDate, getNextCollection } = require('../bins');
+
+// These tests only make sense at the time they were written, because I'm lazily trying to check a bugfix.
 
 describe('getRound', () => {
     it('Should get the bin round', () => {
@@ -9,15 +11,24 @@ describe('getRound', () => {
     });
 });
 
-// These tests only make sense at the time they were written, because I'm lazily trying to check a bugfix.
+describe('getNextCollection', () => {
+    it('Should return a string', () => {
+        return getNextCollection('WedB')
+            .then((result) => {
+                expect(result).toBe("Your next collection is recycling, on Saturday January 2nd. This includes your red, blue and silver bins or boxes.");
+            });
+    });
+});
+
 describe('parseDate', () => {
     it('Should parse date in current year', () => {
         let dateString = 'Monday 28 December';
         let result = parseDate(dateString);
         expect(result).toEqual(
             {
+                dateString: 'Monday 28 December 2020',
                 formattedDate: 'Monday December 28th',
-                isToday: true,
+                isToday: false,
                 isTomorrow: false
             }
         )
@@ -28,6 +39,7 @@ describe('parseDate', () => {
         let result = parseDate(dateString);
         expect(result).toEqual(
             {
+                dateString: 'Saturday 02 January 2021',
                 formattedDate: 'Saturday January 2nd',
                 isToday: false,
                 isTomorrow: false
@@ -40,6 +52,20 @@ describe('parseDate', () => {
         let result = parseDate(dateString);
         expect(result).toEqual(
             {
+                dateString: 'Saturday 02 January 2021',
+                formattedDate: 'Saturday January 2nd',
+                isToday: false,
+                isTomorrow: false
+            }
+        )
+    });
+
+    it('Should work with Jan next year junk', () => {
+        let dateString = 'Saturday 02 January*includes Christmas date change';
+        let result = parseDate(dateString);
+        expect(result).toEqual(
+            {
+                dateString: 'Saturday 02 January 2021',
                 formattedDate: 'Saturday January 2nd',
                 isToday: false,
                 isTomorrow: false
