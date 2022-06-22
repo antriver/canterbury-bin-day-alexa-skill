@@ -146,7 +146,7 @@ const collectionToString = (collection) => {
 const convertCollectionName = (collectionName) => {
     const names = {
         'blackBinDay': 'general waste',
-        'recyclingBinDay': 'recylcing',
+        'recyclingBinDay': 'recycling',
         'gardenBinDay': 'garden waste',
         'foodBinDay': 'food waste',
     }
